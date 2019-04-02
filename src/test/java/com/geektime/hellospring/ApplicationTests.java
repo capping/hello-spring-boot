@@ -1,5 +1,6 @@
 package com.geektime.hellospring;
 
+import com.geektime.hellospring.async.Task;
 import com.geektime.hellospring.entity.User;
 import com.geektime.hellospring.mapper.UserMapper;
 import org.junit.Assert;
@@ -13,12 +14,16 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Future;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class ApplicationTests {
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private Task task;
 
     @Test
     @Transactional
@@ -61,5 +66,23 @@ public class ApplicationTests {
         userMapper.delete(u.getId());
         u = userMapper.findByName("AAA");
         Assert.assertEquals(null, u);
+    }
+
+    @Test
+    public void test() throws Exception {
+        long start = System.currentTimeMillis();
+        Future<String> task1 = task.doTaskOne();
+        Future<String> task2 = task.doTaskTwo();
+        Future<String> task3 = task.doTaskThree();
+        while (true) {
+            if (task1.isDone() && task2.isDone() && task3.isDone()) {
+                // 三个任务都调用完成，退出循环等待
+                break;
+            }
+            Thread.sleep(1000);
+        }
+        long end = System.currentTimeMillis();
+
+        System.out.println("任务全部完成，总耗时：" + (end-start) + "毫秒");
     }
 }
